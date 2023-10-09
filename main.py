@@ -7,7 +7,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from time import sleep
 import argparse
-from datetime import datetime
+import datetime
+import re
 
 
 # Константы для Selenium
@@ -40,7 +41,8 @@ messageBodyStart = "<span>"
 messageBodyStop = "</span>"
 messageIsPicture = "img"
 messageWarrningAboutPicture = "Смайлики не обрабатываю!  I don't process emoticons !"
-fileNameWithLastMessage = "lastmessage.txt"
+finishDate = "finishdate.txt"
+keys = ["Hello everyone! we play tennis on", "Who’s going to play", "мы играем в теннис в", "в теннисном центре НТЦ 2", "Кто будет играть?"]
 
 class whatapp():
     """ Это класс бота для Whatsapp
@@ -119,6 +121,12 @@ class whatapp():
 
 
     def searchLastMessageAndProcessMessages(self):
+# проверям дату
+        file = open(finishDate, 'r')
+        date = file.read()
+        if (not date is None and date == str(datetime.date.today())):
+            return True
+
 # скролим
         for i in [1, 2, 3, 4, 5]:
             self.driver.find_element(By.XPATH, "//div[@role='application']").send_keys(Keys.CONTROL + Keys.HOME)
@@ -135,6 +143,7 @@ class whatapp():
 # review all messages
         today = False
         finish = False
+        author = ''
         for item in messages:
 # получим тело сообщения
 # get body of the message
@@ -148,27 +157,41 @@ class whatapp():
                 else:
                     continue
             
-            if (len(words) != 3):
+            if (len(words) == 3):
+                author = words[0]
+                mes = words[1]
+                time = words[2]
+            elif (len(words) == 2):
+                mes = words[0]
+                time = words[1]
+            else:
                 continue
-            
-            author = words[0]
-            mes = words[1]
-            time = words[2]
             
 
 
             if (not author == "Тимур Теннис По Группам"):
                 continue
             
-            print(mes)
+        #     if (not author == "Аселя"):
+        #         continue
+            
+            for key in keys:
+                result = re.search(key, mes)
+                if (result != None):
+                    finish = True
 
-            #finish = True
+                    self.sendMessage('in')
+                    
+                    file = open(finishDate, 'w')
+                    file.write(str(datetime.date.today()))
+
+                    break
 
             if finish:
-                print(line)
+                print(mes)
                 break
              
-        return finish
+        return finish 
 
 
 def main():
@@ -179,9 +202,10 @@ def main():
             wa = whatapp()
             wa.startBrowser()
             wa.searchGroup("InterNations Tennis Group")
+            #wa.searchGroup("Тест")            
             result = wa.searchLastMessageAndProcessMessages()
             wa.finish()
-            print(str(datetime.now()) + ' ' + str(result))
+            print(str(datetime.datetime.now()) + ' ' + str(result))
             if (result):
                 break
             sleep(15)
