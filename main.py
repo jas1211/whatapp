@@ -71,6 +71,7 @@ class whatapp():
 
         options.add_argument('--profile-directory=Default')
         options.add_argument('--user-data-dir=C:/Temp/ChromeProfile')
+
 # INFO = 0,
 # WARNING = 1,
 # LOG_ERROR = 2,
@@ -152,7 +153,7 @@ class whatapp():
             words = line.split('\n')
             
             if (not today):
-                if (words[0] == "ВЧЕРА"):
+                if (words[0] == "СЕГОДНЯ"):
                     today = True
                 else:
                     continue
